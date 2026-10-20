@@ -1,0 +1,36 @@
+services:
+  # ----------------------------------------------------------------------------
+  # Backend API Web Service
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: uts-railway-backend
+    runtime: python
+    rootDir: backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main_api:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.0
+      - key: DATABASE_PATH
+        value: uts_railway.db
+
+  # ----------------------------------------------------------------------------
+  # Frontend Static Application
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: uts-railway-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: uts-railway-backend
+          property: host
